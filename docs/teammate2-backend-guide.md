@@ -205,7 +205,7 @@ class PredictionRequest(BaseModel):
 class PredictionResponse(BaseModel):
     prediction: str = Field(..., description="Predicted ASL letter")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Prediction confidence")
-    landmarks: Optional[List[List[float]]] = Field(None, description="Hand landmarks if available")
+    landmarks: Optional[List[List[float]]] = Field(None, description="Hand landmarks (21 points, 3 coords each)")
     processing_time: Optional[float] = Field(None, description="Processing time in seconds")
 
 class HealthResponse(BaseModel):
@@ -273,7 +273,7 @@ class ImageProcessor:
     def extract_hand_region(self, image: np.ndarray) -> np.ndarray:
         """
         Extract hand region from image using basic computer vision
-        This is a fallback if MediaPipe isn't available in backend
+        Optional preprocessing method - not required if AI service handles this
         """
         # Convert to grayscale for contour detection
         gray = cv2.cvtColor((image * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
@@ -498,7 +498,8 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 ### With AI Service (Teammate 3):
 - **Service URL**: `http://localhost:8001`
 - **Data Format**: Normalized numpy arrays as JSON
-- **Expected Response**: Prediction with confidence and landmarks
+- **AI Responsibilities**: MediaPipe hand tracking, model inference
+- **Expected Response**: Prediction with confidence and optional landmarks
 
 ## 🧪 Testing Strategy
 

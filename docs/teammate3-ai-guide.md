@@ -109,33 +109,109 @@ def build_asl_model(num_classes=26, input_shape=(224, 224, 3)):
 #### 2.2 Train the Model
 Target 95%+ accuracy with data augmentation and proper validation.
 
-### Phase 3: MediaPipe Integration (Day 2)
+### Phase 3: MediaPipe Integration (Day 2) - YOUR CORE RESPONSIBILITY
 
-#### 3.1 Hand Tracking Implementation
+MediaPipe hand tracking is YOUR responsibility as the AI/ML developer. This provides critical hand landmarks that can enhance model predictions.
+
+#### 3.1 Complete MediaPipe Hand Tracking Implementation
 ```python
 # File: src/mediapipe_processor.py
 import mediapipe as mp
 import cv2
 import numpy as np
+from typing import Optional, Tuple
 
-class HandTracker:
-    def __init__(self):
+class MediaPipeHandProcessor:
+    def __init__(self, 
+                 max_num_hands: int = 1,
+                 min_detection_confidence: float = 0.5,
+                 min_tracking_confidence: float = 0.5):
+        
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
-            static_image_mode=False,
-            max_num_hands=1,
-            min_detection_confidence=0.5
+            static_image_mode=True,  # For single image processing
+            max_num_hands=max_num_hands,
+            min_detection_confidence=min_detection_confidence,
+            min_tracking_confidence=min_tracking_confidence
         )
-    
-    def process_frame(self, frame):
-        # Extract hand landmarks and region
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = self.hands.process(rgb_frame)
+        self.mp_draw = mp.solutions.drawing_utils
+        
+    def process_image(self, image: np.ndarray) -> Tuple[Optional[np.ndarray], bool]:
+        """
+        Process image and extract hand landmarks
+        
+        Returns:
+            - landmarks: Hand landmarks as numpy array (63,) or None
+            - hand_detected: Boolean indicating if hand was detected
+        """
+        # Convert BGR to RGB for MediaPipe
+        if len(image.shape) == 3 and image.shape[2] == 3:
+            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        else:
+            rgb_image = image
+        
+        # Process the image
+        results = self.hands.process(rgb_image)
+        
+        landmarks = None
+        hand_detected = False
         
         if results.multi_hand_landmarks:
-            landmarks = results.multi_hand_landmarks[0]
-            return self.extract_landmarks(landmarks)
-        return None
+            hand_detected = True
+            hand_landmarks = results.multi_hand_landmarks[0]  # Get first hand
+            
+            # Extract landmark coordinates
+            landmarks = np.array([[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark])
+            # Keep as (21, 3) shape for consistency with shared types
+            
+            # Normalize landmarks relative to wrist
+            landmarks = self.normalize_landmarks(landmarks)
+        
+        return landmarks, hand_detected
+    
+    def normalize_landmarks(self, landmarks: np.ndarray) -> np.ndarray:
+        """Normalize landmarks relative to wrist position"""
+        if landmarks is None:
+            return landmarks
+        
+        # landmarks is already (21, 3) shape
+        # Get wrist position (landmark 0)
+        wrist_pos = landmarks[0]
+        
+        # Normalize relative to wrist
+        normalized = landmarks - wrist_pos
+        
+        return normalized  # Keep as (21, 3) for consistency
+    
+    def extract_hand_region(self, image: np.ndarray, landmarks: np.ndarray) -> np.ndarray:
+        """Extract hand region based on landmarks"""
+        if landmarks is None:
+            return image
+        
+        # landmarks is already (21, 3), extract only x, y coordinates
+        landmarks_2d = landmarks[:, :2]  # Only x, y coordinates
+        
+        # Get image dimensions
+        h, w = image.shape[:2]
+        
+        # Convert normalized coordinates to pixel coordinates
+        landmarks_px = landmarks_2d * [w, h]
+        
+        # Find bounding box
+        x_min, y_min = landmarks_px.min(axis=0).astype(int)
+        x_max, y_max = landmarks_px.max(axis=0).astype(int)
+        
+        # Add padding
+        padding = 50
+        x_min = max(0, x_min - padding)
+        y_min = max(0, y_min - padding)
+        x_max = min(w, x_max + padding)
+        y_max = min(h, y_max + padding)
+        
+        # Extract hand region
+        hand_region = image[y_min:y_max, x_min:x_max]
+        
+        return hand_region
 ```
 
 ### Phase 4: Inference API (Day 2-3)
@@ -148,27 +224,55 @@ Create inference server on port 8001:
 from fastapi import FastAPI
 import tensorflow as tf
 import numpy as np
+import time
 
 app = FastAPI(title="ASL Inference API")
 
-# Load model on startup
+# Load model and MediaPipe processor on startup
 model = None
+mp_processor = None
 
 @app.on_event("startup")
 async def load_model():
-    global model
+    global model, mp_processor
+    # Load ASL classification model
     model = tf.keras.models.load_model("models/asl_model.h5")
+    
+    # Initialize MediaPipe hand processor (YOUR RESPONSIBILITY)
+    from src.mediapipe_processor import MediaPipeHandProcessor
+    mp_processor = MediaPipeHandProcessor()
 
 @app.post("/predict")
-async def predict(image_data: dict):
-    # Process image and return prediction
-    image = np.array(image_data["image"])
-    prediction = model.predict(np.expand_dims(image, 0))
+async def predict(request: dict):
+    # Extract image data
+    image = np.array(request["image"])  # Normalized (224, 224, 3) array
+    return_landmarks = request.get("return_landmarks", True)
+    
+    start_time = time.time()
+    
+    # 1. Extract hand landmarks with MediaPipe (YOUR RESPONSIBILITY)
+    landmarks = None
+    hand_detected = False
+    
+    if mp_processor and return_landmarks:
+        # Convert normalized image back to uint8 for MediaPipe
+        image_uint8 = (image * 255).astype(np.uint8)
+        landmarks, hand_detected = mp_processor.process_image(image_uint8)
+    
+    # 2. Run ASL classification model
+    prediction_probs = model.predict(np.expand_dims(image, 0))
+    predicted_class = np.argmax(prediction_probs[0])
+    confidence = float(prediction_probs[0][predicted_class])
+    predicted_letter = chr(65 + predicted_class)  # Convert to A-Z
+    
+    processing_time = time.time() - start_time
     
     return {
-        "prediction": chr(65 + np.argmax(prediction)),  # Convert to letter
-        "confidence": float(np.max(prediction)),
-        "processing_time": 0.1
+        "prediction": predicted_letter,
+        "confidence": confidence,
+        "landmarks": landmarks.tolist() if landmarks is not None else None,
+        "hand_detected": hand_detected,
+        "processing_time": processing_time
     }
 
 @app.get("/health")

@@ -336,10 +336,10 @@ export default function Home() {
 - **Data Format**: Base64 encoded images
 - **Response Format**: `{ prediction: string, confidence: number }`
 
-### With AI Service (Teammate 3):
-- **Image Processing**: Send webcam frames as base64
+### With AI Service (via Backend):
+- **Image Processing**: Webcam frames sent via backend
 - **Real-time Requirements**: 500ms intervals for predictions
-- **Landmark Data**: Optional hand landmark visualization
+- **Visualization**: Display predictions and optional landmarks returned from AI
 
 ## 🧪 Testing Strategy
 
