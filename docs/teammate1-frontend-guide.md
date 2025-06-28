@@ -32,6 +32,7 @@ npm install
 npm install react-webcam @types/react-webcam
 npm install lucide-react class-variance-authority clsx tailwind-merge
 npm install @radix-ui/react-slot @radix-ui/react-button
+npm install @mediapipe/hands @mediapipe/camera_utils @mediapipe/drawing_utils
 ```
 
 #### 1.3 Set up Environment Variables
@@ -336,10 +337,11 @@ export default function Home() {
 - **Data Format**: Base64 encoded images
 - **Response Format**: `{ prediction: string, confidence: number }`
 
-### With AI Service (via Backend):
-- **Image Processing**: Webcam frames sent via backend
-- **Real-time Requirements**: 500ms intervals for predictions
-- **Visualization**: Display predictions and optional landmarks returned from AI
+### MediaPipe Integration (Your Responsibility for Performance):
+- **Real-time Hand Tracking**: MediaPipe runs locally in browser
+- **Hand Region Extraction**: Send only cropped hand regions to backend
+- **Live Landmarks**: Display hand landmarks overlay in real-time
+- **Performance**: ~50ms local processing vs 200-500ms server processing
 
 ## 🧪 Testing Strategy
 

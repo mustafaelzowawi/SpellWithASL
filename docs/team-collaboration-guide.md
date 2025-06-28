@@ -8,7 +8,7 @@ main
 ├── feature/frontend-webcam-integration    (Teammate 1)
 ├── feature/backend-api-endpoints          (Teammate 2)
 ├── feature/ai-model-training              (Teammate 3)
-├── feature/mediapipe-integration          (Teammate 3)
+├── feature/frontend-mediapipe             (Teammate 1)
 └── feature/deployment-setup               (All)
 ```
 
@@ -70,7 +70,7 @@ git push origin feature/your-component-name
 #### Day 2 Midday:
 - **Teammate 1**: Webcam capture working locally
 - **Teammate 2**: Image processing pipeline ready
-- **Teammate 3**: Model training started, MediaPipe basic integration
+- **Teammate 3**: Model training started, optimized inference server
 
 #### Day 2 Evening:
 - **Integration Test**: Frontend → Backend → AI Service full pipeline
@@ -134,7 +134,7 @@ interface PredictionResponse {
 - [ ] Sync with main branch
 - [ ] Monitor model training progress
 - [ ] Test inference API endpoints
-- [ ] Verify MediaPipe integration
+- [ ] Verify frontend MediaPipe hand tracking
 - [ ] Check model accuracy metrics
 - [ ] Push changes and update team on progress
 
@@ -235,7 +235,7 @@ curl http://localhost:8001/health   # AI Service
 #### Teammate 3 (AI/ML):
 - Model accuracy tests
 - Inference speed tests
-- MediaPipe integration tests
+- Frontend MediaPipe hand tracking tests
 - API reliability tests
 
 ## 📊 Progress Tracking

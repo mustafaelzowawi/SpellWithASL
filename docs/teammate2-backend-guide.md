@@ -497,9 +497,9 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 ### With AI Service (Teammate 3):
 - **Service URL**: `http://localhost:8001`
-- **Data Format**: Normalized numpy arrays as JSON
-- **AI Responsibilities**: MediaPipe hand tracking, model inference
-- **Expected Response**: Prediction with confidence and optional landmarks
+- **Data Format**: Base64 encoded hand region images (pre-cropped by frontend)
+- **AI Responsibilities**: Pure ASL classification and optimization
+- **Expected Response**: Prediction with confidence (faster processing!)
 
 ## 🧪 Testing Strategy
 

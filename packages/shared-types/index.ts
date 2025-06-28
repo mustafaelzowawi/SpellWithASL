@@ -7,8 +7,8 @@ export interface PredictionRequest {
 export interface PredictionResponse {
   prediction: string; // "A", "B", "C", etc.
   confidence: number; // 0.0 to 1.0
-  landmarks?: number[][]; // Optional hand landmarks
   processing_time?: number; // Optional processing time in seconds
+  hand_detected?: boolean; // Hand detection status
 }
 
 export interface HealthResponse {
@@ -22,6 +22,17 @@ export interface ASLLetter {
   letter: string;
   description: string;
   image_url?: string;
+}
+
+// Frontend-only MediaPipe types (not sent to backend)
+export interface HandLandmarks {
+  landmarks: number[][]; // 21 hand landmarks with [x, y, z] coordinates
+  boundingBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 export interface WordPractice {

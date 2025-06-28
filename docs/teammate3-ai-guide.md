@@ -109,109 +109,110 @@ def build_asl_model(num_classes=26, input_shape=(224, 224, 3)):
 #### 2.2 Train the Model
 Target 95%+ accuracy with data augmentation and proper validation.
 
-### Phase 3: MediaPipe Integration (Day 2) - YOUR CORE RESPONSIBILITY
+### Phase 3: Pure ASL Classification Focus (Day 2) - SIMPLIFIED ARCHITECTURE
 
-MediaPipe hand tracking is YOUR responsibility as the AI/ML developer. This provides critical hand landmarks that can enhance model predictions.
+**🎯 New Architecture: MediaPipe moved to frontend for performance**
+**Your Focus: Pure ASL model serving and optimization**
 
-#### 3.1 Complete MediaPipe Hand Tracking Implementation
+#### 3.1 Optimized ASL Model Inference (Your New Focus)
 ```python
-# File: src/mediapipe_processor.py
-import mediapipe as mp
-import cv2
+# File: src/asl_classifier.py
+import tensorflow as tf
 import numpy as np
-from typing import Optional, Tuple
+import cv2
+from typing import Tuple
+import logging
 
-class MediaPipeHandProcessor:
-    def __init__(self, 
-                 max_num_hands: int = 1,
-                 min_detection_confidence: float = 0.5,
-                 min_tracking_confidence: float = 0.5):
-        
-        self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(
-            static_image_mode=True,  # For single image processing
-            max_num_hands=max_num_hands,
-            min_detection_confidence=min_detection_confidence,
-            min_tracking_confidence=min_tracking_confidence
-        )
-        self.mp_draw = mp.solutions.drawing_utils
-        
-    def process_image(self, image: np.ndarray) -> Tuple[Optional[np.ndarray], bool]:
-        """
-        Process image and extract hand landmarks
-        
-        Returns:
-            - landmarks: Hand landmarks as numpy array (63,) or None
-            - hand_detected: Boolean indicating if hand was detected
-        """
-        # Convert BGR to RGB for MediaPipe
-        if len(image.shape) == 3 and image.shape[2] == 3:
-            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        else:
-            rgb_image = image
-        
-        # Process the image
-        results = self.hands.process(rgb_image)
-        
-        landmarks = None
-        hand_detected = False
-        
-        if results.multi_hand_landmarks:
-            hand_detected = True
-            hand_landmarks = results.multi_hand_landmarks[0]  # Get first hand
-            
-            # Extract landmark coordinates
-            landmarks = np.array([[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark])
-            # Keep as (21, 3) shape for consistency with shared types
-            
-            # Normalize landmarks relative to wrist
-            landmarks = self.normalize_landmarks(landmarks)
-        
-        return landmarks, hand_detected
+class OptimizedASLClassifier:
+    """
+    Pure ASL classification - no MediaPipe needed!
+    Frontend handles hand tracking, you focus on accurate predictions
+    """
     
-    def normalize_landmarks(self, landmarks: np.ndarray) -> np.ndarray:
-        """Normalize landmarks relative to wrist position"""
-        if landmarks is None:
-            return landmarks
+    def __init__(self, model_path: str = "models/asl_classifier.h5"):
+        self.model = tf.keras.models.load_model(model_path)
+        self.class_names = [chr(i) for i in range(65, 91)]  # A-Z
         
-        # landmarks is already (21, 3) shape
-        # Get wrist position (landmark 0)
-        wrist_pos = landmarks[0]
-        
-        # Normalize relative to wrist
-        normalized = landmarks - wrist_pos
-        
-        return normalized  # Keep as (21, 3) for consistency
+        # Optimize model for inference
+        self.model = self._optimize_model(self.model)
+        logger.info(f"ASL Classifier loaded: {len(self.class_names)} classes")
     
-    def extract_hand_region(self, image: np.ndarray, landmarks: np.ndarray) -> np.ndarray:
-        """Extract hand region based on landmarks"""
-        if landmarks is None:
-            return image
+    def _optimize_model(self, model):
+        """Optimize model for faster inference"""
+        # Convert to TensorFlow Lite for better performance
+        try:
+            converter = tf.lite.TFLiteConverter.from_keras_model(model)
+            converter.optimizations = [tf.lite.Optimize.DEFAULT]
+            tflite_model = converter.convert()
+            
+            # Save optimized model
+            with open('models/asl_classifier_optimized.tflite', 'wb') as f:
+                f.write(tflite_model)
+            
+            logger.info("Model optimized with TensorFlow Lite")
+            return model  # Return original for now, can switch to TFLite later
+        except Exception as e:
+            logger.warning(f"TFLite optimization failed: {e}")
+            return model
+    
+    def preprocess_image(self, image: np.ndarray) -> np.ndarray:
+        """
+        Preprocess hand region image for model inference
+        Input: Hand region from frontend MediaPipe (already cropped!)
+        """
+        # Resize to model input size
+        image_resized = cv2.resize(image, (224, 224))
         
-        # landmarks is already (21, 3), extract only x, y coordinates
-        landmarks_2d = landmarks[:, :2]  # Only x, y coordinates
+        # Normalize pixel values
+        image_normalized = image_resized.astype(np.float32) / 255.0
         
-        # Get image dimensions
-        h, w = image.shape[:2]
+        # Add batch dimension
+        image_batch = np.expand_dims(image_normalized, axis=0)
         
-        # Convert normalized coordinates to pixel coordinates
-        landmarks_px = landmarks_2d * [w, h]
+        return image_batch
+    
+    def predict(self, hand_image: np.ndarray) -> Tuple[str, float]:
+        """
+        Predict ASL letter from hand region image
+        Returns: (predicted_letter, confidence)
+        """
+        # Preprocess image
+        processed_image = self.preprocess_image(hand_image)
         
-        # Find bounding box
-        x_min, y_min = landmarks_px.min(axis=0).astype(int)
-        x_max, y_max = landmarks_px.max(axis=0).astype(int)
+        # Run inference
+        predictions = self.model.predict(processed_image, verbose=0)
         
-        # Add padding
-        padding = 50
-        x_min = max(0, x_min - padding)
-        y_min = max(0, y_min - padding)
-        x_max = min(w, x_max + padding)
-        y_max = min(h, y_max + padding)
+        # Get prediction results
+        predicted_class_idx = np.argmax(predictions[0])
+        confidence = float(predictions[0][predicted_class_idx])
+        predicted_letter = self.class_names[predicted_class_idx]
         
-        # Extract hand region
-        hand_region = image[y_min:y_max, x_min:x_max]
+        return predicted_letter, confidence
+    
+    def predict_batch(self, hand_images: list) -> list:
+        """
+        Batch prediction for multiple images
+        More efficient for multiple predictions
+        """
+        if not hand_images:
+            return []
         
-        return hand_region
+        # Preprocess all images
+        processed_images = np.vstack([
+            self.preprocess_image(img) for img in hand_images
+        ])
+        
+        # Batch inference
+        predictions = self.model.predict(processed_images, verbose=0)
+        
+        results = []
+        for i, pred in enumerate(predictions):
+            class_idx = np.argmax(pred)
+            confidence = float(pred[class_idx])
+            letter = self.class_names[class_idx]
+            results.append((letter, confidence))
+        
+        return results
 ```
 
 ### Phase 4: Inference API (Day 2-3)
@@ -222,58 +223,63 @@ Create inference server on port 8001:
 ```python
 # File: inference_server.py
 from fastapi import FastAPI
-import tensorflow as tf
 import numpy as np
+import cv2
+import base64
 import time
+import logging
 
 app = FastAPI(title="ASL Inference API")
 
-# Load model and MediaPipe processor on startup
-model = None
-mp_processor = None
+# Load optimized ASL classifier on startup
+asl_classifier = None
 
 @app.on_event("startup")
-async def load_model():
-    global model, mp_processor
-    # Load ASL classification model
-    model = tf.keras.models.load_model("models/asl_model.h5")
-    
-    # Initialize MediaPipe hand processor (YOUR RESPONSIBILITY)
-    from src.mediapipe_processor import MediaPipeHandProcessor
-    mp_processor = MediaPipeHandProcessor()
+async def load_classifier():
+    global asl_classifier
+    from src.asl_classifier import OptimizedASLClassifier
+    asl_classifier = OptimizedASLClassifier("models/asl_classifier.h5")
 
 @app.post("/predict")
 async def predict(request: dict):
-    # Extract image data
-    image = np.array(request["image"])  # Normalized (224, 224, 3) array
-    return_landmarks = request.get("return_landmarks", True)
-    
-    start_time = time.time()
-    
-    # 1. Extract hand landmarks with MediaPipe (YOUR RESPONSIBILITY)
-    landmarks = None
-    hand_detected = False
-    
-    if mp_processor and return_landmarks:
-        # Convert normalized image back to uint8 for MediaPipe
-        image_uint8 = (image * 255).astype(np.uint8)
-        landmarks, hand_detected = mp_processor.process_image(image_uint8)
-    
-    # 2. Run ASL classification model
-    prediction_probs = model.predict(np.expand_dims(image, 0))
-    predicted_class = np.argmax(prediction_probs[0])
-    confidence = float(prediction_probs[0][predicted_class])
-    predicted_letter = chr(65 + predicted_class)  # Convert to A-Z
-    
-    processing_time = time.time() - start_time
-    
-    return {
-        "prediction": predicted_letter,
-        "confidence": confidence,
-        "landmarks": landmarks.tolist() if landmarks is not None else None,
-        "hand_detected": hand_detected,
-        "processing_time": processing_time
-    }
+    """
+    Simplified prediction endpoint - receives pre-cropped hand images from frontend
+    Frontend handles MediaPipe, you focus on accurate ASL classification
+    """
+    try:
+        start_time = time.time()
+        
+        # Decode base64 image from frontend (already cropped by MediaPipe)
+        image_data = base64.b64decode(request["image"])
+        nparr = np.frombuffer(image_data, np.uint8)
+        hand_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        if hand_image is None:
+            raise ValueError("Invalid image data")
+        
+        # Pure ASL classification - no MediaPipe needed!
+        predicted_letter, confidence = asl_classifier.predict(hand_image)
+        
+        processing_time = time.time() - start_time
+        
+        logger.info(f"Prediction: {predicted_letter}, Confidence: {confidence:.3f}, Time: {processing_time:.3f}s")
+        
+        return {
+            "prediction": predicted_letter,
+            "confidence": confidence,
+            "processing_time": processing_time,
+            "hand_detected": True  # Frontend already confirmed hand detection
+        }
+        
+    except Exception as e:
+        logger.error(f"Prediction failed: {str(e)}")
+        return {
+            "prediction": "?",
+            "confidence": 0.0,
+            "processing_time": 0.0,
+            "hand_detected": False,
+            "error": str(e)
+        }
 
 @app.get("/health")
 async def health():
