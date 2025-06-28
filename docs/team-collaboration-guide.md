@@ -166,6 +166,14 @@ MODEL_PATH=models/asl_classifier.h5
 - Document Python/Node versions in README
 - Use virtual environments consistently
 
+### Communication Protocols
+
+#### Slack/Discord Channels
+- **#general**: Daily updates and announcements
+- **#frontend**: Frontend-specific discussions
+- **#backend**: Backend and API discussions
+- **#ai-ml**: Model training and AI discussions
+- **#integration**: Cross-team integration issues
 
 #### GitHub Issues
 - **Repository**: https://github.com/mustafaelzowawi/SpellWithASL/issues
