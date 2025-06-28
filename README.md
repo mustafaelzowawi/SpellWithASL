@@ -42,7 +42,7 @@ SpellWithASL/
 #### 1. Initial Setup (All Team Members)
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/mustafaelzowawi/SpellWithASL.git
 cd SpellWithASL
 
 # Create your feature branch
