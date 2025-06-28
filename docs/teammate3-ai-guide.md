@@ -15,11 +15,19 @@ You're responsible for the AI/ML core of the project: building and training an A
 
 ### Phase 1: Environment Setup & Data Preparation (Day 1)
 
-#### 1.1 Initialize AI Service Project
+#### 1.1 Clone Repository & Setup
 ```bash
+# Clone the repository
+git clone https://github.com/mustafaelzowawi/SpellWithASL.git
+cd SpellWithASL
+
+# Run setup script
+./tools/quick-start.sh
+# OR manually setup AI service:
 cd apps/ai-service
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
 #### 1.2 Create Requirements File

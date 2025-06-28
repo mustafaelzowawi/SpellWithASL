@@ -166,6 +166,8 @@ esac
 echo ""
 echo "🎉 Setup complete! Here are your next steps:"
 echo ""
+echo "📖 Repository: https://github.com/mustafaelzowawi/SpellWithASL"
+echo ""
 echo "📚 Read your role-specific guide:"
 case $role_choice in
     1)

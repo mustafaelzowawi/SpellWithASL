@@ -14,10 +14,17 @@ You're responsible for creating an intuitive, responsive web interface that capt
 
 ### Phase 1: Project Setup (Day 1)
 
-#### 1.1 Initialize Next.js App
+#### 1.1 Clone Repository & Setup
 ```bash
+# Clone the repository
+git clone https://github.com/mustafaelzowawi/SpellWithASL.git
+cd SpellWithASL
+
+# Run setup script
+./tools/quick-start.sh
+# OR manually setup frontend:
 cd apps/frontend
-npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
+npm install
 ```
 
 #### 1.2 Install Essential Dependencies

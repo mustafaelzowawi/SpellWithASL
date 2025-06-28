@@ -15,11 +15,19 @@ You're responsible for building a robust FastAPI backend that serves as the brid
 
 ### Phase 1: Project Setup (Day 1)
 
-#### 1.1 Initialize FastAPI Project
+#### 1.1 Clone Repository & Setup
 ```bash
+# Clone the repository
+git clone https://github.com/mustafaelzowawi/SpellWithASL.git
+cd SpellWithASL
+
+# Run setup script
+./tools/quick-start.sh
+# OR manually setup backend:
 cd apps/backend
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
 #### 1.2 Create Requirements File

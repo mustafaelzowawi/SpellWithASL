@@ -97,12 +97,19 @@ See the `docs/` folder for comprehensive step-by-step instructions for each team
 
 ## 🚀 Quick Start
 
-### For Individual Teammates:
+### Repository Setup:
 ```bash
+# Clone the repository
+git clone https://github.com/mustafaelzowawi/SpellWithASL.git
+cd SpellWithASL
+
 # Run the interactive setup script
 ./tools/quick-start.sh
+```
 
-# Or manually setup your component:
+### For Individual Teammates:
+```bash
+# After cloning, setup your component:
 # Teammate 1: cd apps/frontend && npm install && npm run dev
 # Teammate 2: cd apps/backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
 # Teammate 3: cd apps/ai-service && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
@@ -138,9 +145,20 @@ SpellWithASL/
 └── deployment/                        # Docker & deployment configs
 ```
 
+## 🔗 Repository Information
+
+**GitHub Repository**: [https://github.com/mustafaelzowawi/SpellWithASL](https://github.com/mustafaelzowawi/SpellWithASL)
+
+### 🤝 Team Collaboration on GitHub:
+- **Issues**: Use GitHub Issues for bug reports and feature requests
+- **Pull Requests**: All code changes go through PRs with team review
+- **Branches**: Each teammate works on feature branches (see team collaboration guide)
+- **Discussions**: Use GitHub Discussions for team coordination
+
 ---
 **🎯 Next Steps**: 
-1. **Run setup**: `./tools/quick-start.sh`
-2. **Read your guide**: `docs/teammate[X]-[role]-guide.md`  
-3. **Start developing**: Follow your role-specific guide
-4. **Stay coordinated**: Use `docs/team-collaboration-guide.md`
+1. **Clone repo**: `git clone https://github.com/mustafaelzowawi/SpellWithASL.git`
+2. **Run setup**: `./tools/quick-start.sh`
+3. **Read your guide**: `docs/teammate[X]-[role]-guide.md`  
+4. **Start developing**: Follow your role-specific guide
+5. **Stay coordinated**: Use `docs/team-collaboration-guide.md`

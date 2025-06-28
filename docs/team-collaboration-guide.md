@@ -19,6 +19,16 @@ main
 2. **Branch Updates**: Pull latest changes from main
 3. **Integration Check**: Verify your local environment works with teammates' latest changes
 
+#### Repository Setup (First Time)
+```bash
+# Clone the repository
+git clone https://github.com/mustafaelzowawi/SpellWithASL.git
+cd SpellWithASL
+
+# Set up your local environment
+./tools/quick-start.sh
+```
+
 #### Development Cycle
 ```bash
 # Start of day - sync with main
@@ -166,11 +176,15 @@ MODEL_PATH=models/asl_classifier.h5
 - **#integration**: Cross-team integration issues
 
 #### GitHub Issues
+- **Repository**: https://github.com/mustafaelzowawi/SpellWithASL/issues
 - Create issues for bugs and feature requests
-- Tag relevant teammates in issues
-- Use labels: `bug`, `feature`, `integration`, `urgent`
+- Tag relevant teammates in issues (@username)
+- Use labels: `bug`, `feature`, `integration`, `urgent`, `frontend`, `backend`, `ai-ml`
+- Assign issues to specific teammates
 
 #### Pull Request Protocol
+- **Repository PRs**: https://github.com/mustafaelzowawi/SpellWithASL/pulls
+
 ```
 Title: [Component] Brief description
 Example: [Frontend] Add webcam capture component
@@ -180,10 +194,17 @@ Description:
 - How to test
 - Screenshots if UI changes
 - Breaking changes if any
+- Closes #issue-number (if applicable)
 
 Reviewers: At least one teammate
 Labels: component type, priority
 ```
+
+#### GitHub Project Management
+- **Use GitHub Projects**: Create a project board for task tracking
+- **Milestones**: Set up milestones for Day 1, Day 2, Day 3 deliverables
+- **Discussions**: Use GitHub Discussions for team coordination
+- **Wiki**: Document important decisions and architecture choices
 
 ## 🧪 Testing Strategy
 
