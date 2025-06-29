@@ -50,7 +50,7 @@ app.add_middleware(
 )
 
 # Configuration
-AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8001")
+AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "https://spell-with-asl-ai.up.railway.app")
 DATA_DIR = Path("training_data")
 DATA_DIR.mkdir(exist_ok=True)
 
