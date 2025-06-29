@@ -100,7 +100,6 @@ venv.bak/
 .pytest_cache/
 
 # AI/ML models
-*.pkl
 *.h5
 checkpoints/
 
