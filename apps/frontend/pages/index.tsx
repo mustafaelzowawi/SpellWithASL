@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
 
 const LandingPage: React.FC = () => {
+  const [showDevTools, setShowDevTools] = useState(false);
+
   return (
     <>
       <Head>
-        <title>SpellWithASL 🤟</title>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+        <title>SpellWithASL</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
       </Head>
       <div style={{
         minHeight: '100vh',
@@ -15,149 +17,227 @@ const LandingPage: React.FC = () => {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        background: 'linear-gradient(135deg, #e0e7ff 0%, #f5f6fa 100%)',
-        fontFamily: 'Poppins, sans-serif',
+        background: '#f8fafc',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        padding: '20px',
         position: 'relative',
-        overflow: 'hidden',
       }}>
-        {/* Faint background hand SVGs (OpenMoji ILY) */}
-        <svg width="120" height="120" viewBox="0 0 72 72" style={{ position: 'absolute', top: 0, left: 0, opacity: 0.08, zIndex: 0 }}>
-          <g>
-            <path fill="#FCEA2B" d="M36 12c-2 0-3 2-3 4v12h-2V16c0-2-2-4-4-4s-4 2-4 4v20c0 2 2 4 4 4h2v8c0 2 2 4 4 4s4-2 4-4v-8h2c2 0 4-2 4-4V16c0-2-2-4-4-4s-4 2-4 4v12h-2V16c0-2-2-4-4-4z"/>
-            <path fill="#E27022" d="M36 12c-2 0-3 2-3 4v12h-2V16c0-2-2-4-4-4s-4 2-4 4v20c0 2 2 4 4 4h2v8c0 2 2 4 4 4s4-2 4-4v-8h2c2 0 4-2 4-4V16c0-2-2-4-4-4s-4 2-4 4v12h-2V16c0-2-2-4-4-4z" opacity=".2"/>
-          </g>
-        </svg>
-        <svg width="100" height="100" viewBox="0 0 72 72" style={{ position: 'absolute', bottom: 0, right: 0, opacity: 0.08, zIndex: 0 }}>
-          <g>
-            <path fill="#FCEA2B" d="M36 12c-2 0-3 2-3 4v12h-2V16c0-2-2-4-4-4s-4 2-4 4v20c0 2 2 4 4 4h2v8c0 2 2 4 4 4s4-2 4-4v-8h2c2 0 4-2 4-4V16c0-2-2-4-4-4s-4 2-4 4v12h-2V16c0-2-2-4-4-4z"/>
-            <path fill="#E27022" d="M36 12c-2 0-3 2-3 4v12h-2V16c0-2-2-4-4-4s-4 2-4 4v20c0 2 2 4 4 4h2v8c0 2 2 4 4 4s4-2 4-4v-8h2c2 0 4-2 4-4V16c0-2-2-4-4-4s-4 2-4 4v12h-2V16c0-2-2-4-4-4z" opacity=".2"/>
-          </g>
-        </svg>
+        {/* Dev Tools Dropdown */}
         <div style={{
-          background: '#fff',
-          borderRadius: 20,
-          boxShadow: '0 4px 24px rgba(79, 140, 255, 0.08)',
-          padding: '3rem 2.5rem',
-          maxWidth: 480,
-          width: '90%',
-          textAlign: 'center',
-          position: 'relative',
-          zIndex: 1,
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
         }}>
-          <h1 style={{ fontSize: '2.8rem', fontWeight: 600, marginBottom: '1.2rem', letterSpacing: '-1px' }}>
-            SpellWithASL <span role="img" aria-label="ASL Hand">🤟</span>
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowDevTools(!showDevTools)}
+              style={{
+                padding: '8px 12px',
+                fontSize: '12px',
+                fontWeight: 500,
+                borderRadius: '6px',
+                background: showDevTools ? '#e2e8f0' : '#f8fafc',
+                color: '#64748b',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              onMouseEnter={(e) => {
+                if (!showDevTools) {
+                  e.currentTarget.style.background = '#f1f5f9';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!showDevTools) {
+                  e.currentTarget.style.background = '#f8fafc';
+                }
+              }}
+            >
+              ⚙️ Dev
+              <span style={{ 
+                fontSize: '10px',
+                transform: showDevTools ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease'
+              }}>
+                ▼
+              </span>
+            </button>
+            
+            {showDevTools && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: '0',
+                marginTop: '4px',
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                zIndex: 50,
+                minWidth: '140px'
+              }}>
+                <Link href="/data-collection">
+                  <button style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    textAlign: 'left',
+                    background: 'transparent',
+                    color: '#475569',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    borderRadius: '0',
+                    borderTopLeftRadius: '7px',
+                    borderTopRightRadius: '7px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f8fafc';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}>
+                    📊 Collect Data
+                  </button>
+                </Link>
+                
+                <Link href="/diagnosis">
+                  <button style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    textAlign: 'left',
+                    background: 'transparent',
+                    color: '#475569',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    borderRadius: '0',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f8fafc';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}>
+                    🔬 Debug Data
+                  </button>
+                </Link>
+                
+                <Link href="/test-mediapipe">
+                  <button style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    textAlign: 'left',
+                    background: 'transparent',
+                    color: '#475569',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    borderRadius: '0',
+                    borderBottomLeftRadius: '7px',
+                    borderBottomRightRadius: '7px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f8fafc';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}>
+                    📷 Test Camera
+                  </button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '16px',
+          border: '1px solid #e2e8f0',
+          padding: '48px 40px',
+          maxWidth: '500px',
+          width: '100%',
+          textAlign: 'center',
+        }}>
+          <div style={{ 
+            width: '64px',
+            height: '64px',
+            background: '#3b82f6',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px auto',
+            fontSize: '28px'
+          }}>
+            🤟
+          </div>
+          
+          <h1 style={{ 
+            fontSize: '32px', 
+            fontWeight: 600, 
+            color: '#0f172a',
+            marginBottom: '12px',
+            letterSpacing: '-0.025em'
+          }}>
+            SpellWithASL
           </h1>
-          <p style={{ fontSize: '1.25rem', color: '#4f4f4f', marginBottom: '2.2rem', lineHeight: 1.6 }}>
-            Welcome to <b>SpellWithASL</b> — an interactive platform to learn and practice American Sign Language (ASL) spelling using real-time AI gesture recognition. <br />
-            <span style={{ color: '#4f8cff', fontWeight: 500 }}>Start your ASL journey now!</span>
+          
+          <p style={{ 
+            fontSize: '16px', 
+            color: '#64748b', 
+            marginBottom: '32px', 
+            lineHeight: 1.6,
+            maxWidth: '400px',
+            margin: '0 auto 32px auto'
+          }}>
+            Learn American Sign Language spelling with real-time AI gesture recognition
           </p>
-          <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/word-selection">
-              <button style={{
-                padding: '1.1rem 2rem',
-                fontSize: '1rem',
-                borderRadius: 12,
-                background: 'linear-gradient(90deg, #4f8cff 60%, #6fc3ff 100%)',
-                color: '#fff',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                boxShadow: '0 2px 8px rgba(79, 140, 255, 0.10)',
-                transition: 'background 0.2s',
-              }}>
-                🎯 Start Learning
-              </button>
-            </Link>
-            <Link href="/data-collection">
-              <button style={{
-                padding: '1.1rem 2rem',
-                fontSize: '1rem',
-                borderRadius: 12,
-                background: 'linear-gradient(90deg, #f59e0b 60%, #fbbf24 100%)',
-                color: '#fff',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.10)',
-                transition: 'background 0.2s',
-              }}>
-                📊 Collect Data
-              </button>
-            </Link>
-            <Link href="/diagnosis">
-              <button style={{
-                padding: '1.1rem 2rem',
-                fontSize: '1rem',
-                borderRadius: 12,
-                background: 'linear-gradient(90deg, #8b5cf6 60%, #a78bfa 100%)',
-                color: '#fff',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                boxShadow: '0 2px 8px rgba(139, 92, 246, 0.10)',
-                transition: 'background 0.2s',
-              }}>
-                🔬 Diagnose Data
-              </button>
-            </Link>
-            <Link href="/test-mediapipe">
-              <button style={{
-                padding: '1.1rem 2rem',
-                fontSize: '1rem',
-                borderRadius: 12,
-                background: 'linear-gradient(90deg, #28a745 60%, #20c997 100%)',
-                color: '#fff',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                boxShadow: '0 2px 8px rgba(40, 167, 69, 0.10)',
-                transition: 'background 0.2s',
-              }}>
-                🧪 Test Camera
-              </button>
-            </Link>
-
-
-
-          </div>
-          {/* Row of small hand outlines (OpenMoji ASL A, S, L, ILY) */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 32 }}>
-            {/* ASL 'A' */}
-            <svg width="38" height="38" viewBox="0 0 72 72" fill="none">
-              <g>
-                <path fill="#FCEA2B" d="M36 12c-2 0-3 2-3 4v28h-2V16c0-2-2-4-4-4s-4 2-4 4v32c0 2 2 4 4 4h2v4c0 2 2 4 4 4s4-2 4-4v-4h2c2 0 4-2 4-4V16c0-2-2-4-4-4s-4 2-4 4v28h-2V16c0-2-2-4-4-4z"/>
-                <path fill="#E27022" d="M36 12c-2 0-3 2-3 4v28h-2V16c0-2-2-4-4-4s-4 2-4 4v32c0 2 2 4 4 4h2v4c0 2 2 4 4 4s4-2 4-4v-4h2c2 0 4-2 4-4V16c0-2-2-4-4-4s-4 2-4 4v28h-2V16c0-2-2-4-4-4z" opacity=".2"/>
-              </g>
-            </svg>
-            {/* ASL 'S' (fist) */}
-            <svg width="38" height="38" viewBox="0 0 72 72" fill="none">
-              <g>
-                <ellipse cx="36" cy="36" rx="14" ry="18" fill="#FCEA2B" />
-                <ellipse cx="36" cy="44" rx="8" ry="5" fill="#E27022" opacity=".2" />
-              </g>
-            </svg>
-            {/* ASL 'L' */}
-            <svg width="38" height="38" viewBox="0 0 72 72" fill="none">
-              <g>
-                <rect x="32" y="12" width="8" height="28" rx="4" fill="#FCEA2B" />
-                <rect x="32" y="40" width="8" height="16" rx="4" fill="#E27022" opacity=".2" />
-              </g>
-            </svg>
-            {/* ILY hand */}
-            <svg width="38" height="38" viewBox="0 0 72 72" fill="none">
-              <g>
-                <path fill="#FCEA2B" d="M36 12c-2 0-3 2-3 4v12h-2V16c0-2-2-4-4-4s-4 2-4 4v20c0 2 2 4 4 4h2v8c0 2 2 4 4 4s4-2 4-4v-8h2c2 0 4-2 4-4V16c0-2-2-4-4-4s-4 2-4 4v12h-2V16c0-2-2-4-4-4z"/>
-                <path fill="#E27022" d="M36 12c-2 0-3 2-3 4v12h-2V16c0-2-2-4-4-4s-4 2-4 4v20c0 2 2 4 4 4h2v8c0 2 2 4 4 4s4-2 4-4v-8h2c2 0 4-2 4-4V16c0-2-2-4-4-4s-4 2-4 4v12h-2V16c0-2-2-4-4-4z" opacity=".2"/>
-              </g>
-            </svg>
-          </div>
+          
+          <Link href="/word-selection">
+            <button style={{
+              width: '100%',
+              padding: '16px 24px',
+              fontSize: '16px',
+              fontWeight: 500,
+              borderRadius: '12px',
+              background: '#3b82f6',
+              color: '#ffffff',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#2563eb';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#3b82f6';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}>
+              Start Learning
+            </button>
+          </Link>
         </div>
-        <div style={{ width: '100%', maxWidth: 480, marginTop: 40 }}>
-          <hr style={{ border: 'none', borderTop: '1px solid #e0e7ef', margin: 0, marginBottom: 16 }} />
-          <footer style={{ color: '#7b7b7b', fontSize: '1rem', fontWeight: 400, textAlign: 'center' }}>
-            <span>SolutionHacks2025 &mdash; Made by Adan Khalid, Kavin Ainkaran, Mustafa Elzowawi 🤟</span>
-          </footer>
-        </div>
+        
+        <footer style={{ 
+          marginTop: '32px',
+          color: '#94a3b8', 
+          fontSize: '14px',
+          textAlign: 'center',
+          maxWidth: '500px'
+        }}>
+          SolutionHacks2025 • Made by Adan Khalid, Kavin Ainkaran, Mustafa Elzowawi
+        </footer>
       </div>
     </>
   );

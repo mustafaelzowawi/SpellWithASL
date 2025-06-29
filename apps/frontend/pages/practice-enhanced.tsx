@@ -10,7 +10,6 @@ import { apiService } from '../lib/api';
 const PracticeEnhancedPage: React.FC = () => {
   const router = useRouter();
   
-  // Get word from URL params, default to 'HELLO' if not provided
   const getWordFromQuery = (): string => {
     const { word } = router.query;
     if (typeof word === 'string' && word.length > 0) {
@@ -18,6 +17,13 @@ const PracticeEnhancedPage: React.FC = () => {
     }
     return 'HELLO';
   };
+
+  // Practice word pool for auto-progression
+  const practiceWords = [
+    'HELLO', 'WORLD', 'LOVE', 'PEACE', 'THANK', 'PLEASE', 'HELP', 'YES', 'NO', 'FAMILY',
+    'FRIEND', 'HAPPY', 'GOOD', 'BAD', 'NICE', 'COOL', 'WORK', 'PLAY', 'TIME', 'HOME',
+    'SCHOOL', 'LEARN', 'TEACH', 'READ', 'WRITE', 'BOOK', 'WATER', 'FOOD', 'WALK', 'RUN'
+  ];
 
   // Game state
   const [currentWord, setCurrentWord] = useState<string>('HELLO');
@@ -33,6 +39,8 @@ const PracticeEnhancedPage: React.FC = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [statusTick, setStatusTick] = useState(0); // For real-time status updates
   const [retryTrigger, setRetryTrigger] = useState(0); // For manual camera restart
+  const [wordsCompleted, setWordsCompleted] = useState(0);
+  const [showCelebration, setShowCelebration] = useState(false);
    
   // Refs for MediaPipe (minimal approach that works)
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -50,6 +58,21 @@ const PracticeEnhancedPage: React.FC = () => {
 
   const currentLetter = currentWord[currentLetterIndex];
   
+  // Function to get next practice word
+  const getNextWord = () => {
+    // If we have a specific word from URL, stick with practice words after completion
+    // Otherwise, cycle through the practice words or pick a random one
+    const currentWordIndex = practiceWords.indexOf(currentWord);
+    if (currentWordIndex !== -1 && currentWordIndex < practiceWords.length - 1) {
+      // Move to next word in sequence
+      return practiceWords[currentWordIndex + 1];
+    } else {
+      // Pick a random word from the pool (excluding current word)
+      const availableWords = practiceWords.filter(word => word !== currentWord);
+      return availableWords[Math.floor(Math.random() * availableWords.length)];
+    }
+  };
+
   // Update refs whenever state changes
   useEffect(() => {
     currentLetterRef.current = currentLetter;
@@ -193,21 +216,29 @@ const PracticeEnhancedPage: React.FC = () => {
                 letterStartTime.current = Date.now(); // Reset timer for new letter
                 console.log(`🔄 Moving to next letter: "${currentWordRef.current[currentLetterIndexRef.current + 1]}"`);
               } else {
-                // Word complete!
+                // Word complete! Auto-progress to next word
                 setIsTransitioning(false);
-                const choice = confirm(`🎉 Congratulations! You completed "${currentWordRef.current}"!\n\nWould you like to:\n- OK: Practice another word\n- Cancel: Practice this word again`);
-                if (choice) {
-                  // Go to word selection
-                  router.push('/word-selection');
-                } else {
-                  // Restart current word
+                setWordsCompleted(prev => prev + 1);
+                
+                console.log(`🎉 Word "${currentWordRef.current}" completed! Moving to next word...`);
+                
+                // Show celebration overlay
+                setShowCelebration(true);
+                
+                // Auto-progress to next word after brief celebration
+                setTimeout(() => {
+                  const nextWord = getNextWord();
+                  setCurrentWord(nextWord);
                   setCurrentLetterIndex(0);
                   setPrediction(null);
                   setConfidence(0);
                   setIsCorrect(null);
                   letterStartTime.current = Date.now();
                   lastLetterCompletionTime.current = 0;
-                }
+                  setShowCelebration(false);
+                  
+                  console.log(`🔄 Started new word: "${nextWord}"`);
+                }, 2000); // 2 second celebration
               }
             }, 1500);
           }
@@ -445,31 +476,78 @@ const PracticeEnhancedPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>ASL Practice - SpellWithASL</title>
+        <title>Practice ASL - SpellWithASL</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
       </Head>
       
       <div style={{ 
         minHeight: '100vh', 
         padding: '20px', 
-        background: 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)',
-        fontFamily: 'Arial, sans-serif'
+        background: '#f8fafc',
+        fontFamily: 'Inter, system-ui, sans-serif'
       }}>
         {/* Header */}
         <div style={{ maxWidth: '1200px', margin: '0 auto 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
             <Link href="/">
-              <button style={{ padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+              <button style={{ 
+                padding: '10px 16px', 
+                background: '#f1f5f9', 
+                color: '#475569', 
+                border: '1px solid #e2e8f0', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 500,
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#e2e8f0';
+                e.currentTarget.style.borderColor = '#cbd5e1';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#f1f5f9';
+                e.currentTarget.style.borderColor = '#e2e8f0';
+              }}>
                 ← Home
               </button>
             </Link>
             <Link href="/word-selection">
-              <button style={{ padding: '10px 20px', background: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-                📝 Change Word
+              <button style={{ 
+                padding: '10px 16px', 
+                background: '#3b82f6', 
+                color: '#ffffff', 
+                border: 'none', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 500,
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#2563eb';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#3b82f6';
+              }}>
+                Change Word
               </button>
             </Link>
           </div>
-          <h1 style={{ margin: 0, color: '#333' }}>ASL Practice 🤟</h1>
-          <div style={{ color: '#666' }}>Score: {score}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h1 style={{ margin: 0, color: '#0f172a', fontSize: '20px', fontWeight: 600 }}>ASL Practice</h1>
+            <div style={{ 
+              background: '#f1f5f9', 
+              color: '#475569', 
+              padding: '6px 12px',
+              borderRadius: '16px',
+              fontSize: '14px',
+              fontWeight: 500,
+              border: '1px solid #e2e8f0'
+            }}>
+              Letters: {score} | Words: {wordsCompleted}
+            </div>
+          </div>
         </div>
 
         <div style={{ 
@@ -481,30 +559,38 @@ const PracticeEnhancedPage: React.FC = () => {
           alignItems: 'start'
         }}>
           {/* Camera Section */}
-          <div style={{ background: 'white', borderRadius: '10px', padding: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <h2 style={{ margin: 0 }}>Camera</h2>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ margin: 0, color: '#0f172a', fontSize: '18px', fontWeight: 600 }}>Camera</h2>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                 <div style={{ 
-                  padding: '5px 15px', 
-                  borderRadius: '20px', 
+                  padding: '6px 12px', 
+                  borderRadius: '16px', 
                   background: status.color, 
-                  color: 'white',
-                  fontSize: '14px'
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: 500
                 }}>
                   {status.text}
                 </div>
                 <button
                   onClick={restartCamera}
                   style={{
-                    padding: '5px 12px',
-                    background: '#6c757d',
-                    color: 'white',
+                    padding: '6px 12px',
+                    background: '#64748b',
+                    color: '#ffffff',
                     border: 'none',
-                    borderRadius: '15px',
+                    borderRadius: '8px',
                     cursor: 'pointer',
                     fontSize: '12px',
-                    fontWeight: 'bold'
+                    fontWeight: 500,
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#475569';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#64748b';
                   }}
                   title="Restart camera if black screen appears"
                 >
@@ -514,10 +600,10 @@ const PracticeEnhancedPage: React.FC = () => {
             </div>
             
             <div style={{ 
-              border: `2px solid ${isHandDetected ? '#28a745' : '#ddd'}`, 
-              borderRadius: '10px', 
+              border: `2px solid ${isHandDetected ? '#10b981' : '#e2e8f0'}`, 
+              borderRadius: '12px', 
               overflow: 'hidden',
-              background: '#000'
+              background: '#000000'
             }}>
               <video ref={videoRef} style={{ display: 'none' }} />
               <canvas 
@@ -533,23 +619,23 @@ const PracticeEnhancedPage: React.FC = () => {
           </div>
 
           {/* Practice Section */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Current Word */}
-            <div style={{ background: 'white', borderRadius: '10px', padding: '20px', textAlign: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-              <h3 style={{ margin: '0 0 15px 0', color: '#333' }}>Spell: {currentWord}</h3>
-              <div style={{ fontSize: '2rem', letterSpacing: '0.5rem', marginBottom: '15px' }}>
+            <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px', textAlign: 'center' }}>
+              <h3 style={{ margin: '0 0 16px 0', color: '#0f172a', fontSize: '18px', fontWeight: 600 }}>Spell: {currentWord}</h3>
+              <div style={{ fontSize: '2rem', letterSpacing: '0.5rem', marginBottom: '16px' }}>
                 {currentWord.split('').map((letter, index) => (
                   <span key={index} style={{
-                    color: index === currentLetterIndex ? '#007bff' : 
-                           index < currentLetterIndex ? '#28a745' : '#ccc',
-                    fontWeight: index === currentLetterIndex ? 'bold' : 'normal'
+                    color: index === currentLetterIndex ? '#3b82f6' : 
+                           index < currentLetterIndex ? '#10b981' : '#cbd5e1',
+                    fontWeight: index === currentLetterIndex ? 600 : 'normal'
                   }}>
                     {letter}
                   </span>
                 ))}
               </div>
-              <div style={{ fontSize: '1.2rem', color: '#666', marginBottom: '10px' }}>
-                Show: <strong style={{ color: '#007bff' }}>{currentLetter}</strong>
+              <div style={{ fontSize: '16px', color: '#64748b', marginBottom: '12px' }}>
+                Show: <strong style={{ color: '#3b82f6', fontSize: '18px' }}>{currentLetter}</strong>
               </div>
               
               {/* Time Progress Indicator */}
@@ -561,29 +647,28 @@ const PracticeEnhancedPage: React.FC = () => {
                 const isReady = timeOnCurrentLetter >= minLetterTime && !isTransitioning;
                 
                 return (
-                  <div style={{ marginTop: '10px' }}>
+                  <div style={{ marginTop: '12px' }}>
                     <div style={{ 
-                      fontSize: '0.9rem', 
-                      color: isReady ? '#28a745' : '#666',
-                      marginBottom: '5px'
+                      fontSize: '14px', 
+                      color: isReady ? '#10b981' : '#64748b',
+                      marginBottom: '8px',
+                      fontWeight: 500
                     }}>
                       {isReady ? '✅ Ready to complete!' : '⏱️ Building confidence...'}
                     </div>
                     <div style={{ 
                       width: '100%', 
-                      height: '6px', 
-                      background: '#e9ecef', 
-                      borderRadius: '3px',
+                      height: '8px', 
+                      background: '#f1f5f9', 
+                      borderRadius: '4px',
                       overflow: 'hidden'
                     }}>
                       <div style={{
                         width: `${progress}%`,
                         height: '100%',
-                        background: isReady ? 
-                          'linear-gradient(90deg, #28a745, #20c997)' : 
-                          'linear-gradient(90deg, #ffc107, #fd7e14)',
+                        background: isReady ? '#10b981' : '#3b82f6',
                         transition: 'all 0.3s ease',
-                        borderRadius: '3px'
+                        borderRadius: '4px'
                       }} />
                     </div>
                   </div>
@@ -592,8 +677,8 @@ const PracticeEnhancedPage: React.FC = () => {
             </div>
 
             {/* ASL Reference */}
-            <div style={{ background: 'white', borderRadius: '10px', padding: '20px', textAlign: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-              <h3 style={{ margin: '0 0 15px 0', color: '#333' }}>ASL Reference</h3>
+            <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px', textAlign: 'center' }}>
+              <h3 style={{ margin: '0 0 16px 0', color: '#0f172a', fontSize: '18px', fontWeight: 600 }}>ASL Reference</h3>
               <img 
                 src={`/asl/${currentLetter}.jpg`}
                 alt={`ASL ${currentLetter}`}
@@ -601,8 +686,8 @@ const PracticeEnhancedPage: React.FC = () => {
                   width: '120px', 
                   height: '120px', 
                   objectFit: 'cover', 
-                  borderRadius: '8px',
-                  border: '2px solid #ddd'
+                  borderRadius: '12px',
+                  border: '2px solid #e2e8f0'
                 }}
                 onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
               />
@@ -611,17 +696,17 @@ const PracticeEnhancedPage: React.FC = () => {
             {/* Prediction Result */}
             {prediction && (
               <div style={{ 
-                background: isCorrect ? '#d4edda' : '#f8d7da', 
-                color: isCorrect ? '#155724' : '#721c24',
-                borderRadius: '10px', 
-                padding: '15px', 
+                background: isCorrect ? '#f0fdf4' : '#fef2f2', 
+                color: isCorrect ? '#166534' : '#991b1b',
+                borderRadius: '16px', 
+                padding: '20px', 
                 textAlign: 'center',
-                border: `2px solid ${isCorrect ? '#28a745' : '#dc3545'}`
+                border: `2px solid ${isCorrect ? '#10b981' : '#ef4444'}`
               }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '5px' }}>
+                <div style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px' }}>
                   {prediction} ({Math.round(confidence * 100)}%)
                 </div>
-                <div>
+                <div style={{ fontSize: '14px', fontWeight: 500 }}>
                   {isCorrect ? '🎉 Correct!' : `❌ Try again (Expected: ${currentLetter})`}
                 </div>
               </div>
@@ -630,78 +715,54 @@ const PracticeEnhancedPage: React.FC = () => {
                          {/* Real-time Stats */}
              {isHandDetected && (
                <div style={{ 
-                 background: '#e7f3ff', 
-                 color: '#004085',
-                 borderRadius: '10px', 
-                 padding: '10px', 
+                 background: '#f0f9ff', 
+                 color: '#0369a1',
+                 borderRadius: '16px', 
+                 padding: '16px', 
                  textAlign: 'center',
                  fontSize: '14px',
-                 border: '1px solid #bee5eb'
+                 fontWeight: 500,
+                 border: '1px solid #e0f2fe'
                }}>
                  <strong>⚡ Real-time:</strong> {predictionRate} predictions/sec
                </div>
              )}
 
-             {/* Top 3 Predictions for Debugging */}
-             {prediction && confidence > 0 && (
-               <div style={{ 
-                 background: '#f8f9fa', 
-                 color: '#495057',
-                 borderRadius: '10px', 
-                 padding: '15px', 
-                 fontSize: '14px',
-                 border: '1px solid #dee2e6',
-                 marginTop: '10px'
-               }}>
-                 <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>🎯 Model Predictions:</div>
-                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                   {/* This will be populated when we get top_predictions from API */}
-                   <div style={{ 
-                     background: isCorrect ? '#d4edda' : '#f8d7da',
-                     color: isCorrect ? '#155724' : '#721c24',
-                     padding: '5px 10px',
-                     borderRadius: '5px',
-                     fontSize: '12px',
-                     fontWeight: 'bold'
-                   }}>
-                     #{1}: {prediction} ({(confidence * 100).toFixed(1)}%)
-                   </div>
-                 </div>
-                 <div style={{ marginTop: '8px', fontSize: '12px', color: '#6c757d' }}>
-                   Target: <strong>{currentLetter}</strong> | 
-                   Status: <strong style={{ color: isCorrect ? '#28a745' : '#dc3545' }}>
-                     {isCorrect ? '✅ Correct' : '❌ Incorrect'}
-                   </strong>
-                 </div>
-               </div>
-             )}
+
 
             {/* Error Display */}
             {lastError && (
               <div style={{ 
-                background: '#f8d7da', 
-                color: '#721c24',
-                borderRadius: '10px', 
-                padding: '15px', 
+                background: '#fef2f2', 
+                color: '#991b1b',
+                borderRadius: '16px', 
+                padding: '20px', 
                 textAlign: 'center',
                 fontSize: '14px',
-                border: '1px solid #f5c6cb'
+                border: '1px solid #fecaca'
               }}>
-                <div style={{ marginBottom: '10px' }}>
+                <div style={{ marginBottom: '16px', fontWeight: 500 }}>
                   <strong>❌ Error:</strong> {lastError}
                 </div>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button 
                     onClick={restartCamera}
                     style={{ 
-                      background: '#007bff', 
-                      color: 'white',
+                      background: '#3b82f6', 
+                      color: '#ffffff',
                       border: 'none', 
-                      borderRadius: '5px',
-                      padding: '8px 15px',
+                      borderRadius: '8px',
+                      padding: '10px 16px',
                       cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: 'bold'
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#2563eb';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#3b82f6';
                     }}
                   >
                     🔄 Restart Camera
@@ -710,12 +771,20 @@ const PracticeEnhancedPage: React.FC = () => {
                     onClick={() => setLastError(null)}
                     style={{ 
                       background: 'transparent', 
-                      border: '1px solid #721c24', 
-                      color: '#721c24',
-                      borderRadius: '5px',
-                      padding: '8px 15px',
+                      border: '1px solid #991b1b', 
+                      color: '#991b1b',
+                      borderRadius: '8px',
+                      padding: '10px 16px',
                       cursor: 'pointer',
-                      fontSize: '13px'
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#fef2f2';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
                     }}
                   >
                     ✕ Dismiss
@@ -725,6 +794,99 @@ const PracticeEnhancedPage: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Word Completion Celebration Overlay */}
+        {showCelebration && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            animation: 'fadeIn 0.3s ease-out'
+          }}>
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              padding: '48px 40px',
+              textAlign: 'center',
+              maxWidth: '400px',
+              width: '90%',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              animation: 'scaleIn 0.3s ease-out'
+            }}>
+              <div style={{
+                width: '80px',
+                height: '80px',
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 24px auto',
+                fontSize: '36px'
+              }}>
+                🎉
+              </div>
+              
+              <h2 style={{
+                fontSize: '24px',
+                fontWeight: 600,
+                color: '#0f172a',
+                marginBottom: '12px'
+              }}>
+                Word Complete!
+              </h2>
+              
+              <p style={{
+                fontSize: '18px',
+                color: '#10b981',
+                fontWeight: 600,
+                marginBottom: '8px'
+              }}>
+                "{currentWord}" ✓
+              </p>
+              
+              <p style={{
+                fontSize: '16px',
+                color: '#64748b',
+                marginBottom: '20px'
+              }}>
+                Moving to next word...
+              </p>
+              
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '16px',
+                fontSize: '14px',
+                color: '#94a3b8'
+              }}>
+                <span>Letters: {score}</span>
+                <span>•</span>
+                <span>Words: {wordsCompleted}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CSS Animations */}
+        <style jsx>{`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+          }
+        `}</style>
       </div>
     </>
   );
