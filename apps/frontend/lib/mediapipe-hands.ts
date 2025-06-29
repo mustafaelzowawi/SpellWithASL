@@ -1,120 +1,163 @@
 import { Hands, Results } from '@mediapipe/hands';
 import { Camera } from '@mediapipe/camera_utils';
 
-export interface HandRegion {
-  handImage: string; // base64 encoded cropped hand region
-  landmarks: number[][]; // 21 hand landmarks
+export interface HandLandmarks {
+  landmarks: number[][]; // 21 hand landmarks [[x,y,z], ...]
 }
 
+// Global instance counter to prevent multiple MediaPipe instances
+let instanceCount = 0;
+
 export class MediaPipeHandTracker {
-  private hands: Hands;
+  private hands: Hands | null = null;
   private camera: Camera | null = null;
   private videoElement: HTMLVideoElement;
   private canvasElement: HTMLCanvasElement;
   private onResults: (results: Results) => void;
   private isReady = false;
+  private isProcessingFrame = false;
+  private instanceId: number;
+  private lastFrameTime = 0;
+  private frameInterval = 100; // Process max 10 frames per second
 
   constructor(
     videoElement: HTMLVideoElement,
     canvasElement: HTMLCanvasElement,
     onResults: (results: Results) => void
   ) {
+    this.instanceId = ++instanceCount;
     this.videoElement = videoElement;
     this.canvasElement = canvasElement;
     this.onResults = onResults;
-
-    // Simple MediaPipe setup
-    this.hands = new Hands({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
-    });
-
-    this.hands.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-      selfieMode: true
-    });
-
-    this.hands.onResults(this.onResults);
+    
+    console.log(`MediaPipe instance ${this.instanceId} created`);
   }
 
   async initialize(): Promise<void> {
     if (this.isReady) return;
+    
+    try {
+      console.log(`Initializing MediaPipe instance ${this.instanceId}...`);
+      
+      // Initialize MediaPipe Hands with error handling
+      if (!this.hands) {
+        console.log(`Creating MediaPipe Hands for instance ${this.instanceId}...`);
+        this.hands = new Hands({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+        });
 
-    // Get camera stream
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 640, height: 480, facingMode: 'user' }
-    });
+        this.hands.setOptions({
+          maxNumHands: 1,
+          modelComplexity: 0, // Reduced complexity for stability
+          minDetectionConfidence: 0.7,
+          minTrackingConfidence: 0.5,
+          selfieMode: true
+        });
 
-    this.videoElement.srcObject = stream;
-    this.videoElement.play();
+        this.hands.onResults(this.onResults);
+        console.log(`MediaPipe Hands created for instance ${this.instanceId}`);
+      }
 
-    // Wait for video to load
-    await new Promise<void>((resolve) => {
-      this.videoElement.onloadedmetadata = () => resolve();
-    });
+      // Get camera stream
+      console.log(`Getting camera stream for instance ${this.instanceId}...`);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480, facingMode: 'user' }
+      });
 
-    // Set canvas size
-    this.canvasElement.width = 640;
-    this.canvasElement.height = 480;
+      this.videoElement.srcObject = stream;
+      this.videoElement.play();
 
-    // Start MediaPipe
-    this.camera = new Camera(this.videoElement, {
-      onFrame: async () => {
-        await this.hands.send({ image: this.videoElement });
-      },
-      width: 640,
-      height: 480
-    });
+      // Wait for video to load
+      await new Promise<void>((resolve) => {
+        this.videoElement.onloadedmetadata = () => {
+          console.log(`Video loaded for instance ${this.instanceId}`);
+          resolve();
+        };
+      });
 
-    await this.camera.start();
-    this.isReady = true;
+      // Set canvas size
+      this.canvasElement.width = 640;
+      this.canvasElement.height = 480;
+
+      // Start MediaPipe with completely non-blocking frame processing
+      console.log(`Starting camera for instance ${this.instanceId}...`);
+      this.camera = new Camera(this.videoElement, {
+        onFrame: async () => {
+          const now = Date.now();
+          
+          // Skip frame if already processing, no hands initialized, or too soon since last frame
+          if (this.isProcessingFrame || !this.hands || (now - this.lastFrameTime) < this.frameInterval) {
+            return;
+          }
+          
+          this.lastFrameTime = now;
+          this.isProcessingFrame = true;
+          
+          // Process frame in next tick to avoid blocking
+          setTimeout(() => {
+            if (this.hands && this.isReady) {
+              this.hands.send({ image: this.videoElement }).catch((error) => {
+                console.error(`MediaPipe processing error (instance ${this.instanceId}):`, error);
+              }).finally(() => {
+                this.isProcessingFrame = false;
+              });
+            } else {
+              this.isProcessingFrame = false;
+            }
+          }, 0);
+        },
+        width: 640,
+        height: 480
+      });
+
+      await this.camera.start();
+      this.isReady = true;
+      console.log(`MediaPipe instance ${this.instanceId} fully initialized!`);
+      
+    } catch (error) {
+      console.error(`Failed to initialize MediaPipe instance ${this.instanceId}:`, error);
+      this.cleanup();
+      throw error;
+    }
+  }
+  
+  private cleanup(): void {
+    if (this.camera) {
+      this.camera.stop();
+      this.camera = null;
+    }
+    
+    if (this.videoElement.srcObject) {
+      (this.videoElement.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+      this.videoElement.srcObject = null;
+    }
+    
+    this.hands = null;
+    this.isReady = false;
+    this.isProcessingFrame = false;
+    this.lastFrameTime = 0;
+    console.log(`MediaPipe instance ${this.instanceId} cleaned up`);
   }
 
-  // Simple hand region extraction
-  extractHandRegion(results: Results): HandRegion | null {
-    if (!results.multiHandLandmarks?.[0]) return null;
+  // Extract hand landmarks only (no image processing)
+  extractHandLandmarks(results: Results): HandLandmarks | null {
+    if (!results.multiHandLandmarks?.[0] || !this.isReady) return null;
 
     const landmarks = results.multiHandLandmarks[0];
-    const canvas = this.canvasElement;
     
-    // Get hand bounding box
-    const xs = landmarks.map(l => l.x * canvas.width);
-    const ys = landmarks.map(l => l.y * canvas.height);
-    
-    const minX = Math.max(0, Math.min(...xs) - 40);
-    const maxX = Math.min(canvas.width, Math.max(...xs) + 40);
-    const minY = Math.max(0, Math.min(...ys) - 40);
-    const maxY = Math.min(canvas.height, Math.max(...ys) + 40);
-
-    // Create cropped image
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = 224;
-    tempCanvas.height = 224;
-    const ctx = tempCanvas.getContext('2d')!;
-    
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, 224, 224);
-    
-    ctx.drawImage(
-      canvas,
-      minX, minY, maxX - minX, maxY - minY,
-      0, 0, 224, 224
-    );
-
-    return {
-      handImage: tempCanvas.toDataURL('image/jpeg').split(',')[1],
-      landmarks: landmarks.map(lm => [lm.x, lm.y, lm.z])
-    };
+    try {
+      return {
+        landmarks: landmarks.map(lm => [lm.x, lm.y, lm.z])
+      };
+    } catch (error) {
+      console.error(`Hand landmarks extraction error (instance ${this.instanceId}):`, error);
+      return null;
+    }
   }
 
   stop(): void {
-    this.camera?.stop();
-    if (this.videoElement.srcObject) {
-      (this.videoElement.srcObject as MediaStream).getTracks().forEach(track => track.stop());
-    }
-    this.isReady = false;
+    console.log(`Stopping MediaPipe instance ${this.instanceId}...`);
+    this.cleanup();
   }
 
   get ready(): boolean {

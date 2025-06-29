@@ -5,8 +5,16 @@ export interface PredictionResponse {
   error?: string;
 }
 
-export interface PredictionRequest {
-  image: string; // base64 encoded image
+
+
+export interface LandmarkPoint {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface LandmarkPredictionRequest {
+  landmarks: number[][]; // [[x,y,z], [x,y,z], ...] format expected by backend
 }
 
 export class ASLAPIService {
@@ -16,21 +24,39 @@ export class ASLAPIService {
     this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   }
 
-  async predictASL(handImage: string): Promise<PredictionResponse> {
+
+
+  async predictFromLandmarks(landmarks: number[][]): Promise<PredictionResponse> {
     try {
-      const response = await fetch(`${this.baseURL}/predict`, {
+      // Validate landmarks count
+      if (landmarks.length !== 21) {
+        console.error(`Invalid landmarks count: ${landmarks.length}, expected 21`);
+        return {
+          prediction: '?',
+          confidence: 0.0,
+          error: `Invalid landmarks count: ${landmarks.length}`
+        };
+      }
+
+      const response = await fetch(`${this.baseURL}/predict-landmarks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: handImage }),
+        body: JSON.stringify({ landmarks }),
+        // Reasonable timeout for real-time feel
+        signal: AbortSignal.timeout(5000) // 5 seconds max
       });
 
       if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error:', response.status, errorText);
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log('Prediction result:', result); // Debug logging
+      return result;
     } catch (error) {
-      console.error('Prediction failed:', error);
+      console.error('Landmark prediction failed:', error);
       return {
         prediction: '?',
         confidence: 0.0,
@@ -48,34 +74,7 @@ export class ASLAPIService {
     }
   }
 
-  // Batch prediction for multiple images (future feature)
-  async predictBatch(handImages: string[]): Promise<PredictionResponse[]> {
-    try {
-      const response = await fetch(`${this.baseURL}/predict/batch`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          images: handImages
-        }),
-      });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data: PredictionResponse[] = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Batch prediction error:', error);
-      return handImages.map(() => ({
-        prediction: '?',
-        confidence: 0.0,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }));
-    }
-  }
 }
 
 // Export singleton instance

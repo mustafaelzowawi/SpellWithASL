@@ -51,11 +51,11 @@ const LandingPage: React.FC = () => {
             Welcome to <b>SpellWithASL</b> — an interactive platform to learn and practice American Sign Language (ASL) spelling using real-time AI gesture recognition. <br />
             <span style={{ color: '#4f8cff', fontWeight: 500 }}>Start your ASL journey now!</span>
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/practice-enhanced">
               <button style={{
-                padding: '1.1rem 2.5rem',
-                fontSize: '1.15rem',
+                padding: '1.1rem 2rem',
+                fontSize: '1rem',
                 borderRadius: 12,
                 background: 'linear-gradient(90deg, #4f8cff 60%, #6fc3ff 100%)',
                 color: '#fff',
@@ -65,13 +65,45 @@ const LandingPage: React.FC = () => {
                 boxShadow: '0 2px 8px rgba(79, 140, 255, 0.10)',
                 transition: 'background 0.2s',
               }}>
-                Start Learning
+                🎯 Start Learning
+              </button>
+            </Link>
+            <Link href="/data-collection">
+              <button style={{
+                padding: '1.1rem 2rem',
+                fontSize: '1rem',
+                borderRadius: 12,
+                background: 'linear-gradient(90deg, #f59e0b 60%, #fbbf24 100%)',
+                color: '#fff',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 600,
+                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.10)',
+                transition: 'background 0.2s',
+              }}>
+                📊 Collect Data
+              </button>
+            </Link>
+            <Link href="/diagnosis">
+              <button style={{
+                padding: '1.1rem 2rem',
+                fontSize: '1rem',
+                borderRadius: 12,
+                background: 'linear-gradient(90deg, #8b5cf6 60%, #a78bfa 100%)',
+                color: '#fff',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 600,
+                boxShadow: '0 2px 8px rgba(139, 92, 246, 0.10)',
+                transition: 'background 0.2s',
+              }}>
+                🔬 Diagnose Data
               </button>
             </Link>
             <Link href="/test-mediapipe">
               <button style={{
-                padding: '1.1rem 2.5rem',
-                fontSize: '1.15rem',
+                padding: '1.1rem 2rem',
+                fontSize: '1rem',
                 borderRadius: 12,
                 background: 'linear-gradient(90deg, #28a745 60%, #20c997 100%)',
                 color: '#fff',
@@ -81,9 +113,12 @@ const LandingPage: React.FC = () => {
                 boxShadow: '0 2px 8px rgba(40, 167, 69, 0.10)',
                 transition: 'background 0.2s',
               }}>
-                Test Camera
+                🧪 Test Camera
               </button>
             </Link>
+
+
+
           </div>
           {/* Row of small hand outlines (OpenMoji ASL A, S, L, ILY) */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 32 }}>

@@ -1,21 +1,23 @@
 // Shared types for SpellWithASL API contracts
 
-export interface PredictionRequest {
-  image: string; // base64 encoded image
+export interface LandmarkPredictionRequest {
+  landmarks: number[][]; // 21 hand landmarks with [x, y, z] coordinates
 }
 
 export interface PredictionResponse {
   prediction: string; // "A", "B", "C", etc.
   confidence: number; // 0.0 to 1.0
   processing_time?: number; // Optional processing time in seconds
-  hand_detected?: boolean; // Hand detection status
+  landmarks?: number[][]; // Echo back landmarks if needed
+  error?: string; // Error message if prediction failed
 }
 
 export interface HealthResponse {
   status: 'healthy' | 'degraded' | 'error';
   message: string;
   version?: string;
-  ai_service_status?: 'connected' | 'disconnected';
+  model_available?: boolean;
+  model_trained?: boolean;
 }
 
 export interface ASLLetter {
@@ -24,15 +26,23 @@ export interface ASLLetter {
   image_url?: string;
 }
 
+// Data collection types
+export interface DataCollectionRequest {
+  letter: string;
+  landmarks: number[][];
+  timestamp: number;
+}
+
+export interface CollectionStatsResponse {
+  total_samples: number;
+  letter_stats: Record<string, number>;
+  letters_with_data: number;
+  data_directory: string;
+}
+
 // Frontend-only MediaPipe types (not sent to backend)
 export interface HandLandmarks {
   landmarks: number[][]; // 21 hand landmarks with [x, y, z] coordinates
-  boundingBox: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
 }
 
 export interface WordPractice {
@@ -51,9 +61,11 @@ export interface UserSession {
 
 // API endpoint types
 export const API_ENDPOINTS = {
-  PREDICT: '/predict',
+  PREDICT_LANDMARKS: '/predict-landmarks',
   HEALTH: '/health',
-  BATCH_PREDICT: '/predict/batch',
+  COLLECT_SAMPLE: '/collect-sample',
+  COLLECTION_STATS: '/collection-stats',
+  TRAIN_MODEL: '/train-model',
 } as const;
 
 // Port configuration
