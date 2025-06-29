@@ -2,7 +2,6 @@ export interface PredictionResponse {
   prediction: string;
   confidence: number;
   processing_time?: number;
-  hand_detected?: boolean;
   error?: string;
 }
 
@@ -21,28 +20,20 @@ export class ASLAPIService {
     try {
       const response = await fetch(`${this.baseURL}/predict`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          image: handImage // base64 hand region from MediaPipe
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: handImage }),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`API Error: ${response.status}`);
       }
 
-      const data: PredictionResponse = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
-      console.error('API prediction error:', error);
-      
-      // Return error response
+      console.error('Prediction failed:', error);
       return {
         prediction: '?',
         confidence: 0.0,
-        hand_detected: false,
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
@@ -50,14 +41,9 @@ export class ASLAPIService {
 
   async checkHealth(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseURL}/health`, {
-        method: 'GET',
-        timeout: 5000,
-      } as RequestInit);
-      
+      const response = await fetch(`${this.baseURL}/health`);
       return response.ok;
-    } catch (error) {
-      console.error('Health check failed:', error);
+    } catch {
       return false;
     }
   }
@@ -86,12 +72,11 @@ export class ASLAPIService {
       return handImages.map(() => ({
         prediction: '?',
         confidence: 0.0,
-        hand_detected: false,
         error: error instanceof Error ? error.message : 'Unknown error'
       }));
     }
   }
 }
 
-// Singleton instance
+// Export singleton instance
 export const apiService = new ASLAPIService(); 
