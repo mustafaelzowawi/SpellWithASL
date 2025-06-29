@@ -2,7 +2,15 @@
 
 **Learn ASL spelling with real-time AI feedback**
 
+> An interactive learning platform that makes American Sign Language education accessible through AI-powered gesture recognition.
+
 An interactive web application that teaches American Sign Language (ASL) spelling using AI-powered hand gesture recognition through your webcam.
+
+## 🎥 Demo
+
+[Live Demo](https://spell-with-asl.vercel.app) | [Video Demo](https://your-video-link-here)
+
+*Try it yourself - no installation required! Just allow camera access and start signing.*
 
 ## ✨ Features
 
