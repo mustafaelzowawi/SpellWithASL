@@ -1,0 +1,149 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import httpx
+import os
+from typing import Optional
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="SpellWithASL Backend API",
+    description="API Gateway for ASL letter prediction",
+    version="1.0.0"
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Configuration
+AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8001")
+
+# Request/Response models
+class PredictionRequest(BaseModel):
+    image: str  # base64 encoded image
+
+class PredictionResponse(BaseModel):
+    prediction: str
+    confidence: float
+    processing_time: Optional[float] = None
+    hand_detected: Optional[bool] = None
+    error: Optional[str] = None
+
+class HealthResponse(BaseModel):
+    status: str
+    message: str
+    ai_service_status: Optional[str] = None
+
+@app.get("/health", response_model=HealthResponse)
+async def health_check():
+    """Health check endpoint"""
+    try:
+        # Check AI service health
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            try:
+                ai_response = await client.get(f"{AI_SERVICE_URL}/health")
+                ai_status = "connected" if ai_response.status_code == 200 else "disconnected"
+            except Exception:
+                ai_status = "disconnected"
+        
+        return HealthResponse(
+            status="healthy",
+            message="Backend is running",
+            ai_service_status=ai_status
+        )
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        raise HTTPException(status_code=500, detail="Health check failed")
+
+@app.post("/predict", response_model=PredictionResponse)
+async def predict_asl(request: PredictionRequest):
+    """
+    Predict ASL letter from hand image
+    Forwards request to AI service
+    """
+    try:
+        logger.info("Received prediction request")
+        
+        # Validate base64 image
+        if not request.image:
+            raise HTTPException(status_code=400, detail="No image provided")
+        
+        # Forward to AI service
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            try:
+                ai_response = await client.post(
+                    f"{AI_SERVICE_URL}/predict",
+                    json={"image": request.image}
+                )
+                
+                if ai_response.status_code == 200:
+                    result = ai_response.json()
+                    logger.info(f"AI prediction: {result.get('prediction', '?')} (confidence: {result.get('confidence', 0):.2f})")
+                    
+                    return PredictionResponse(
+                        prediction=result.get("prediction", "?"),
+                        confidence=result.get("confidence", 0.0),
+                        processing_time=result.get("processing_time"),
+                        hand_detected=result.get("hand_detected", False)
+                    )
+                else:
+                    logger.error(f"AI service error: {ai_response.status_code}")
+                    raise HTTPException(status_code=502, detail="AI service error")
+                    
+            except httpx.TimeoutException:
+                logger.error("AI service timeout")
+                return PredictionResponse(
+                    prediction="?",
+                    confidence=0.0,
+                    hand_detected=False,
+                    error="AI service timeout"
+                )
+            except httpx.ConnectError:
+                logger.error("Cannot connect to AI service")
+                return PredictionResponse(
+                    prediction="?",
+                    confidence=0.0,
+                    hand_detected=False,
+                    error="AI service unavailable"
+                )
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Prediction error: {e}")
+        return PredictionResponse(
+            prediction="?",
+            confidence=0.0,
+            hand_detected=False,
+            error=str(e)
+        )
+
+@app.post("/predict/batch")
+async def predict_batch(request: dict):
+    """Batch prediction endpoint (future feature)"""
+    return {"message": "Batch prediction not implemented yet"}
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    port = int(os.getenv("PORT", 8000))
+    logger.info(f"Starting SpellWithASL Backend on port {port}")
+    logger.info(f"AI Service URL: {AI_SERVICE_URL}")
+    
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=port,
+        reload=True,
+        log_level="info"
+    ) 
