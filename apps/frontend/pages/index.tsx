@@ -52,7 +52,7 @@ const LandingPage: React.FC = () => {
             <span style={{ color: '#4f8cff', fontWeight: 500 }}>Start your ASL journey now!</span>
           </p>
           <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/practice-enhanced">
+            <Link href="/word-selection">
               <button style={{
                 padding: '1.1rem 2rem',
                 fontSize: '1rem',
