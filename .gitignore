@@ -110,3 +110,12 @@ checkpoints/
 *.zip
 *.tar.gz
 *.7z 
+# Virtual environments
+venv/
+*/venv/
+.venv/
+*/.venv/
+env/
+*/env/
+.env/
+*/.env/
