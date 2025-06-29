@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import time
 import logging
+import os
 from typing import List
 from pydantic import BaseModel
 
@@ -140,10 +141,11 @@ if __name__ == "__main__":
     else:
         logger.info("❌ Model dependencies not available. Please install required packages.")
     
+    port = int(os.getenv("PORT", 8001))
     uvicorn.run(
         "inference_server:app",
         host="0.0.0.0",
-        port=8001,
+        port=port,
         reload=True,
         log_level="info"
     ) 

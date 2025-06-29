@@ -38,10 +38,12 @@ class HealthResponse(BaseModel):
 # Initialize FastAPI app
 app = FastAPI(title="SpellWithASL Backend", version="1.0.0")
 
-# Configure CORS
+# Configure CORS - get allowed origins from environment
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,https://spell-with-asl.vercel.app").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://spell-with-asl.vercel.app"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -305,4 +307,5 @@ async def trigger_model_training():
         raise HTTPException(status_code=500, detail=f"Training failed: {str(e)}")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -119,3 +119,6 @@ env/
 */env/
 .env/
 */.env/
+
+
+deployment-guide.md
