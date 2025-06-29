@@ -1,164 +1,89 @@
-# SpellWithASL
+# SpellWithASL 🤟
 
-## 🤟 AI-Powered ASL Learning Platform
+**Learn ASL spelling with real-time AI feedback**
 
-An interactive web application that teaches users how to spell words in American Sign Language (ASL) using real-time AI-driven gesture recognition through webcam feeds.
+An interactive web application that teaches American Sign Language (ASL) spelling using AI-powered hand gesture recognition through your webcam.
 
-### 🎯 Project Objective
-Develop an MVP web application capable of:
-- Recognizing ASL alphabet letters (A–Z) in real-time via webcam
-- Allowing users to practice spelling words letter-by-letter using ASL gestures
-- Integrating AI components for gesture recognition using computer vision
+## ✨ Features
 
-### 🛠️ Tech Stack
-- **Frontend**: React/Next.js with TypeScript
-- **Backend**: FastAPI (Python)
-- **AI/ML**: TensorFlow/PyTorch + MediaPipe for hand tracking
-- **Deployment**: Vercel (Frontend) + Heroku (Backend)
+- **Real-time ASL Recognition**: Recognizes A-Z letters using MediaPipe hand landmarks
+- **Interactive Learning**: Practice spelling any word letter-by-letter
+- **Auto-Progression**: Automatically moves to next word after completion
+- **Minimal Design**: Clean, focused interface for distraction-free learning
+- **Data Collection**: Built-in tools for expanding the training dataset
 
-### 👥 Team Collaboration Structure
-- **Teammate 1**: Frontend Development (React/Next.js, UI/UX, WebCam integration)
-- **Teammate 2**: Backend Development (FastAPI, API endpoints, model serving)
-- **Teammate 3**: AI/ML Development (Model training, MediaPipe integration, data preprocessing)
+## 🏗️ Architecture
 
-### 📁 Project Structure (Monorepo)
 ```
-SpellWithASL/
-├── apps/
-│   ├── frontend/             # React/Next.js application (Teammate 1)
-│   ├── backend/              # FastAPI server (Teammate 2)
-│   └── ai-service/           # ML model and inference API (Teammate 3)
-├── packages/
-│   ├── shared-types/         # TypeScript interfaces and types
-│   ├── ui-components/        # Reusable UI components
-│   └── utils/                # Shared utilities and helpers
-├── docs/                     # Documentation and guides
-├── tools/                    # Build tools and scripts
-└── deployment/               # Docker and deployment configs
+Frontend (Next.js)     Backend (FastAPI)     AI Service (TensorFlow)
+     :3000         →        :8000         →         :8001
+                  landmarks              neural network
 ```
 
-### 🚀 Quick Start Guide
+- **Frontend**: React/Next.js with MediaPipe for hand tracking
+- **Backend**: FastAPI server handling requests and data collection
+- **AI Service**: TensorFlow model for ASL letter classification
 
-#### 1. Initial Setup (All Team Members)
-```bash
-# Clone the repository
-git clone https://github.com/mustafaelzowawi/SpellWithASL.git
-cd SpellWithASL
+## 🚀 Quick Start
 
-# Create your feature branch
-git checkout -b feature/your-name-component
-```
-
-#### 2. Development Environment Setup
-
-**Frontend (Teammate 1)**:
-```bash
-cd apps/frontend
-npm install
-npm run dev
-```
-
-**Backend (Teammate 2)**:
-```bash
-cd apps/backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-**AI Service (Teammate 3)**:
+### 1. Start AI Service
 ```bash
 cd apps/ai-service
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-python inference_server.py
+python inference_server.py  # Runs on :8001
 ```
 
-### 🔄 Git Workflow
-1. **Feature Branches**: Each teammate works on feature branches
-2. **Pull Requests**: All changes go through PR reviews
-3. **Main Branch**: Protected, requires PR approval
-4. **Daily Syncs**: Regular team check-ins and code reviews
-
-### 📚 Detailed Development Guide
-See the `docs/` folder for comprehensive step-by-step instructions for each team member.
-
-### 🌍 Alignment with UN SDGs
-- **Goal 4**: Quality Education - Making ASL learning accessible
-- **Goal 10**: Reduced Inequalities - Breaking communication barriers
-
-### 🎯 Hackathon Presentation Points
-- Real-time AI gesture recognition
-- Collaborative team development
-- Accessibility and inclusivity focus
-- Modern web technologies integration
-
-## 🚀 Quick Start
-
-### Repository Setup:
+### 2. Start Backend
 ```bash
-# Clone the repository
-git clone https://github.com/mustafaelzowawi/SpellWithASL.git
-cd SpellWithASL
-
-# Run the interactive setup script
-./tools/quick-start.sh
+cd apps/backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload  # Runs on :8000
 ```
 
-### For Individual Teammates:
+### 3. Start Frontend
 ```bash
-# After cloning, setup your component:
-# Teammate 1: cd apps/frontend && npm install && npm run dev
-# Teammate 2: cd apps/backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
-# Teammate 3: cd apps/ai-service && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+cd apps/frontend
+npm install
+npm run dev  # Runs on :3000
 ```
 
-### Complete Project Structure:
+Visit `http://localhost:3000` to start learning!
+
+## 🧠 How It Works
+
+1. **MediaPipe** extracts 21 hand landmarks from your webcam
+2. **TensorFlow model** predicts ASL letter from landmark coordinates
+3. **Real-time feedback** guides you through spelling words
+4. **Auto-progression** keeps you learning with minimal interruption
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js, TypeScript, MediaPipe, Tailwind CSS
+- **Backend**: FastAPI, Python, Uvicorn
+- **AI/ML**: TensorFlow, NumPy, Scikit-learn
+- **Data**: JSON-based training samples with hand landmarks
+
+## 📁 Project Structure
+
 ```
 SpellWithASL/
-├── README.md                          # Project overview
 ├── apps/
-│   ├── frontend/                      # React/Next.js app (Port 3000)
-│   │   ├── package.json              # Dependencies configured
-│   │   └── .env.local                # Environment variables
-│   ├── backend/                       # FastAPI server (Port 8000)
-│   │   ├── requirements.txt          # Python dependencies
-│   │   └── .env                      # Environment variables  
-│   └── ai-service/                    # ML inference API (Port 8001)
-│       ├── requirements.txt          # AI/ML dependencies
-│       ├── .env                      # Environment variables
-│       └── {data,models,notebooks,scripts,src}/  # Project structure
+│   ├── frontend/          # Next.js web app
+│   ├── backend/           # FastAPI server
+│   └── ai-service/        # ML inference service
 ├── packages/
-│   ├── shared-types/                  # TypeScript interfaces
-│   │   └── index.ts                  # API contracts & types
-│   ├── ui-components/                 # Reusable components
-│   └── utils/                         # Shared utilities
-├── docs/
-│   ├── teammate1-frontend-guide.md    # Complete frontend guide
-│   ├── teammate2-backend-guide.md     # Complete backend guide  
-│   ├── teammate3-ai-guide.md          # Complete AI/ML guide
-│   └── team-collaboration-guide.md    # Git workflow & collaboration
-├── tools/
-│   └── quick-start.sh                 # Automated setup script
-└── deployment/                        # Docker & deployment configs
+│   └── shared-types/      # TypeScript interfaces
+└── tools/                 # Utility scripts
 ```
 
-## 🔗 Repository Information
+## 🎯 Development
 
-**GitHub Repository**: [https://github.com/mustafaelzowawi/SpellWithASL](https://github.com/mustafaelzowawi/SpellWithASL)
-
-### 🤝 Team Collaboration on GitHub:
-- **Issues**: Use GitHub Issues for bug reports and feature requests
-- **Pull Requests**: All code changes go through PRs with team review
-- **Branches**: Each teammate works on feature branches (see team collaboration guide)
-- **Discussions**: Use GitHub Discussions for team coordination
+The system uses landmarks-only approach for better performance, privacy, and real-time processing. All services communicate via REST APIs with standardized TypeScript interfaces.
 
 ---
-**🎯 Next Steps**: 
-1. **Clone repo**: `git clone https://github.com/mustafaelzowawi/SpellWithASL.git`
-2. **Run setup**: `./tools/quick-start.sh`
-3. **Read your guide**: `docs/teammate[X]-[role]-guide.md`  
-4. **Start developing**: Follow your role-specific guide
-5. **Stay coordinated**: Use `docs/team-collaboration-guide.md`
+
+*Created for accessible ASL education through AI technology*
