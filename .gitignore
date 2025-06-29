@@ -102,8 +102,6 @@ venv.bak/
 # AI/ML models
 *.pkl
 *.h5
-*.model
-models/
 checkpoints/
 
 # Large files
