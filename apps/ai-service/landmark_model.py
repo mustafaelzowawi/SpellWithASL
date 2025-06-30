@@ -306,11 +306,21 @@ class ASLLandmarkModel:
     def load_model(self, filepath):
         """Load model and preprocessors"""
         try:
-            # Try new format first
+            # Try new format first with compatibility handling
             if os.path.exists(f"{filepath}_model.keras"):
-                self.model = tf.keras.models.load_model(f"{filepath}_model.keras")
+                # Handle TensorFlow version compatibility issues
+                try:
+                    self.model = tf.keras.models.load_model(f"{filepath}_model.keras")
+                except Exception as keras_error:
+                    print(f"Keras format failed: {keras_error}")
+                    # Try loading with custom objects if needed
+                    return False
             elif os.path.exists(f"{filepath}_model.h5"):
-                self.model = tf.keras.models.load_model(f"{filepath}_model.h5")
+                try:
+                    self.model = tf.keras.models.load_model(f"{filepath}_model.h5")
+                except Exception as h5_error:
+                    print(f"H5 format failed: {h5_error}")
+                    return False
             else:
                 raise FileNotFoundError("No model file found")
             
@@ -326,6 +336,8 @@ class ASLLandmarkModel:
             
         except Exception as e:
             print(f"Failed to load model: {e}")
+            self.is_trained = False
+            self.model = None
             return False
 
 # Initialize global model instance
@@ -334,7 +346,9 @@ asl_model = ASLLandmarkModel()
 # Try to load existing model on startup
 model_path = "models/asl_landmark_model"
 if os.path.exists(f"{model_path}_model.keras") or os.path.exists(f"{model_path}_model.h5"):
-    asl_model.load_model(model_path)
-    print("✅ Pre-trained model loaded successfully")
+    if asl_model.load_model(model_path):
+        print("✅ Pre-trained model loaded successfully")
+    else:
+        print("❌ Failed to load pre-trained model. Will need retraining.")
 else:
     print("ℹ️ No pre-trained model found. Model will be trained on first request.") 

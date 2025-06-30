@@ -39,11 +39,14 @@ class TrainingRequest(BaseModel):
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
+    model_status = "loaded" if LANDMARK_MODEL_AVAILABLE and asl_model.is_trained else "failed" if LANDMARK_MODEL_AVAILABLE else "unavailable"
+    
     return {
-        "status": "healthy" if LANDMARK_MODEL_AVAILABLE else "degraded",
-        "message": "ASL landmark inference service is running" if LANDMARK_MODEL_AVAILABLE else "Service running but model unavailable",
+        "status": "healthy" if LANDMARK_MODEL_AVAILABLE and asl_model.is_trained else "degraded",
+        "message": f"ASL inference service running - model {model_status}",
         "model_available": LANDMARK_MODEL_AVAILABLE,
         "model_trained": asl_model.is_trained if LANDMARK_MODEL_AVAILABLE else False,
+        "model_status": model_status,
         "version": "1.0.0"
     }
 
