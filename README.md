@@ -8,7 +8,7 @@ An interactive web application that teaches American Sign Language (ASL) spellin
 
 ## 🎥 Demo
 
-[Live Demo](https://spell-with-asl.vercel.app) | [Video Demo](https://your-video-link-here)
+[Live Demo](https://spell-with-asl.vercel.app) | [DevPost With Video Demo](https://devpost.com/software/spellwithasl)
 
 *Try it yourself - no installation required! Just allow camera access and start signing.*
 
