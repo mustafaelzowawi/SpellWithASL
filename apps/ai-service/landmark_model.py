@@ -345,7 +345,17 @@ asl_model = ASLLandmarkModel()
 
 # Try to load existing model on startup
 model_path = "models/asl_landmark_model"
+print(f"🔍 Looking for model files at: {model_path}")
+print(f"📁 Current working directory: {os.getcwd()}")
+print(f"📁 Directory contents: {os.listdir('.')}")
+
+if os.path.exists("models"):
+    print(f"📁 Models directory contents: {os.listdir('models')}")
+else:
+    print("❌ Models directory does not exist!")
+
 if os.path.exists(f"{model_path}_model.keras") or os.path.exists(f"{model_path}_model.h5"):
+    print("🔄 Attempting to load model...")
     if asl_model.load_model(model_path):
         print("✅ Pre-trained model loaded successfully")
     else:

@@ -145,6 +145,7 @@ if __name__ == "__main__":
         logger.info("❌ Model dependencies not available. Please install required packages.")
     
     port = int(os.getenv("PORT", 8001))
+    print(f"🔌 Starting AI service on port: {port}")
     uvicorn.run(
         "inference_server:app",
         host="0.0.0.0",
