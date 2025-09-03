@@ -4,6 +4,12 @@
 
 > An interactive learning platform that makes American Sign Language education accessible through AI-powered gesture recognition.
 
+## Contributors
+- Adan Khalid
+- Mustafa Elzowawi
+- Kavin Ainkaran
+
+
 ## 🎥 Demo
 
 [Live Demo](https://spell-with-asl.vercel.app) | [DevPost With Video Demo](https://devpost.com/software/spellwithasl)
